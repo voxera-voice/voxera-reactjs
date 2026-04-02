@@ -1,0 +1,38 @@
+{
+  "name": "@voxera/sdk-react",
+  "version": "1.0.0",
+  "description": "React SDK for Voxera Voice Platform",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --external react --watch",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["voxera", "voice-ai", "webrtc", "sdk", "react", "hooks"],
+  "author": "Voxera",
+  "license": "MIT",
+  "dependencies": {
+    "@voxera/sdk-core": "file:../sdk-core"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "react": "^18.2.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.2"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  }
+}
