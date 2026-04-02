@@ -24,7 +24,7 @@
     "url": "https://github.com/voxera-voice/voxera-reactjs/issues"
   },
   "dependencies": {
-    "@voxera/sdk-core": "file:../sdk-core"
+    "@voxera/sdk-core": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -39,9 +39,9 @@
   "files": ["dist"],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     }
   }
 }
