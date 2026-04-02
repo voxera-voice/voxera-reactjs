@@ -9,11 +9,20 @@
     "build": "tsup src/index.ts --format cjs,esm --dts --external react",
     "dev": "tsup src/index.ts --format cjs,esm --dts --external react --watch",
     "lint": "eslint src/",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": ["voxera", "voice-ai", "webrtc", "sdk", "react", "hooks"],
   "author": "Voxera",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/voxera-voice/voxera-reactjs.git"
+  },
+  "homepage": "https://github.com/voxera-voice/voxera-reactjs#readme",
+  "bugs": {
+    "url": "https://github.com/voxera-voice/voxera-reactjs/issues"
+  },
   "dependencies": {
     "@voxera/sdk-core": "file:../sdk-core"
   },
