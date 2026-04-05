@@ -16,7 +16,7 @@
  *     isAISpeaking,
  *   } = useOmniumVoiceChat({
  *     appKey: 'your-api-key',
- *     serverUrl: 'wss://api.maya-voice.com',
+ *     serverUrl: 'wss://api.voxera.ai',
  *   });
  *
  *   return (
@@ -38,12 +38,16 @@ export type {
 } from "./useOmniumVoiceChat";
 
 // Provider and context hook
-export { MayaVoiceProvider, useMayaVoice } from "./MayaVoiceProvider";
-export type { MayaVoiceProviderProps } from "./MayaVoiceProvider";
+export { VoxeraProvider, useVoxera } from "./VoxeraProvider";
+export type { VoxeraProviderProps } from "./VoxeraProvider";
+
+// Backward-compatible aliases (deprecated)
+export { VoxeraProvider as MayaVoiceProvider, useVoxera as useMayaVoice } from "./VoxeraProvider";
+export type { VoxeraProviderProps as MayaVoiceProviderProps } from "./VoxeraProvider";
 
 // Re-export types from core
 export {
-  type MayaVoiceConfig,
+  type VoxeraConfig,
   type ChatConfig,
   type VoiceConfig,
   type ConnectionOptions,
@@ -52,9 +56,13 @@ export {
   type ConversationStatus,
   type SpeakingStatus,
   type WebRTCStats,
-  MayaVoiceError,
+  type RoomMode,
+  VoxeraError,
   ErrorCodes,
 } from "@voxera/sdk-core";
+
+// Backward-compatible aliases from core (deprecated)
+export { type VoxeraConfig as MayaVoiceConfig, VoxeraError as MayaVoiceError } from "@voxera/sdk-core";
 
 // Version
 export const VERSION = "1.0.0";

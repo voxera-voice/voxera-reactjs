@@ -6,50 +6,50 @@ import {
   useEffect,
 } from "react";
 import {
-  MayaVoiceClient,
-  MayaVoiceConfig,
+  VoxeraClient,
+  VoxeraConfig,
   ConnectionStatus,
   ConversationStatus,
   SpeakingStatus,
   ConversationMessage,
-  MayaVoiceError,
+  VoxeraError,
 } from "@voxera/sdk-core";
 
 /**
- * Maya Voice context type
+ * Voxera context type
  */
-interface MayaVoiceContextType {
-  client: MayaVoiceClient | null;
+interface VoxeraContextType {
+  client: VoxeraClient | null;
   connectionStatus: ConnectionStatus;
   conversationStatus: ConversationStatus;
   speakingStatus: SpeakingStatus;
   messages: ConversationMessage[];
-  error: MayaVoiceError | null;
+  error: VoxeraError | null;
 }
 
-const MayaVoiceContext = createContext<MayaVoiceContextType | undefined>(
+const VoxeraContext = createContext<VoxeraContextType | undefined>(
   undefined
 );
 
 /**
- * Props for MayaVoiceProvider
+ * Props for VoxeraProvider
  */
-export interface MayaVoiceProviderProps {
+export interface VoxeraProviderProps {
   children: ReactNode;
-  config: MayaVoiceConfig;
+  config: VoxeraConfig;
   autoConnect?: boolean;
 }
 
 /**
- * Maya Voice Provider component
+ * Voxera Provider component
  *
- * Provides the Maya Voice client context to child components.
+ * Provides the Voxera client context to child components.
  *
  * @example
  * ```tsx
  * function App() {
  *   return (
- *     <MayaVoiceProvider
+ *     <VoxeraProvider
  *       config={{
  *         appKey: 'your-api-key',
  *         serverUrl: 'wss://api.voxera.ai',
@@ -57,27 +57,27 @@ export interface MayaVoiceProviderProps {
  *       autoConnect
  *     >
  *       <VoiceChat />
- *     </MayaVoiceProvider>
+ *     </VoxeraProvider>
  *   );
  * }
  * ```
  */
-export function MayaVoiceProvider({
+export function VoxeraProvider({
   children,
   config,
   autoConnect = false,
-}: MayaVoiceProviderProps) {
-  const [client, setClient] = useState<MayaVoiceClient | null>(null);
+}: VoxeraProviderProps) {
+  const [client, setClient] = useState<VoxeraClient | null>(null);
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("idle");
   const [conversationStatus, setConversationStatus] =
     useState<ConversationStatus>("idle");
   const [speakingStatus, setSpeakingStatus] = useState<SpeakingStatus>("none");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  const [error, setError] = useState<MayaVoiceError | null>(null);
+  const [error, setError] = useState<VoxeraError | null>(null);
 
   useEffect(() => {
-    const mayaClient = new MayaVoiceClient({
+    const voxeraClient = new VoxeraClient({
       ...config,
       onConnectionStatusChange: setConnectionStatus,
       onConversationStatusChange: setConversationStatus,
@@ -88,20 +88,20 @@ export function MayaVoiceProvider({
       onError: setError,
     });
 
-    setClient(mayaClient);
+    setClient(voxeraClient);
 
     if (autoConnect) {
-      mayaClient.connect().catch(() => {
+      voxeraClient.connect().catch(() => {
         // Error handled by onError callback
       });
     }
 
     return () => {
-      mayaClient.disconnect();
+      voxeraClient.disconnect();
     };
   }, []);
 
-  const value: MayaVoiceContextType = {
+  const value: VoxeraContextType = {
     client,
     connectionStatus,
     conversationStatus,
@@ -111,21 +111,21 @@ export function MayaVoiceProvider({
   };
 
   return (
-    <MayaVoiceContext.Provider value={value}>
+    <VoxeraContext.Provider value={value}>
       {children}
-    </MayaVoiceContext.Provider>
+    </VoxeraContext.Provider>
   );
 }
 
 /**
- * Hook to access the Maya Voice context
+ * Hook to access the Voxera context
  *
- * Must be used within a MayaVoiceProvider.
+ * Must be used within a VoxeraProvider.
  *
  * @example
  * ```tsx
  * function VoiceChat() {
- *   const { client, connectionStatus, messages } = useMayaVoice();
+ *   const { client, connectionStatus, messages } = useVoxera();
  *
  *   return (
  *     <div>
@@ -138,11 +138,11 @@ export function MayaVoiceProvider({
  * }
  * ```
  */
-export function useMayaVoice(): MayaVoiceContextType {
-  const context = useContext(MayaVoiceContext);
+export function useVoxera(): VoxeraContextType {
+  const context = useContext(VoxeraContext);
 
   if (context === undefined) {
-    throw new Error("useMayaVoice must be used within a MayaVoiceProvider");
+    throw new Error("useVoxera must be used within a VoxeraProvider");
   }
 
   return context;

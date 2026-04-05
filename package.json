@@ -1,6 +1,6 @@
 {
   "name": "@voxera/sdk-react",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "React SDK for Voxera Voice Platform",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -12,7 +12,14 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["voxera", "voice-ai", "webrtc", "sdk", "react", "hooks"],
+  "keywords": [
+    "voxera",
+    "voice-ai",
+    "webrtc",
+    "sdk",
+    "react",
+    "hooks"
+  ],
   "author": "Voxera",
   "license": "MIT",
   "repository": {
@@ -36,7 +43,9 @@
   "peerDependencies": {
     "react": ">=16.8.0"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
