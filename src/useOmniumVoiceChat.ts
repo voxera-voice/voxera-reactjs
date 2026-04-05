@@ -58,6 +58,7 @@ export interface UseOmniumVoiceChatReturn {
   currentTranscript: string;
   audioLevel: number;
   aiAudioLevel: number;
+  participantAudioLevels: Record<string, number>;
   error: MayaVoiceError | null;
   localVideoStream: MediaStream | null;
   remoteVideoStream: MediaStream | null;
@@ -205,6 +206,7 @@ export function useOmniumVoiceChat(
   const [currentTranscript, setCurrentTranscript] = useState<string>("");
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [aiAudioLevel, setAIAudioLevel] = useState<number>(0);
+  const [participantAudioLevels, setParticipantAudioLevels] = useState<Record<string, number>>({});
   const [error, setError] = useState<MayaVoiceError | null>(null);
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null);
   const [remoteVideoStream, setRemoteVideoStream] = useState<MediaStream | null>(null);
@@ -261,6 +263,13 @@ export function useOmniumVoiceChat(
       onLocalVideoStream: setLocalVideoStream,
       onRemoteVideoStream: setRemoteVideoStream,
       onLocalScreenStream: setLocalScreenStream,
+    });
+
+    // Listen for peer audio levels
+    (client as any).on('peer-audio:level', (data: { producerId: string; clientId?: string; level: number }) => {
+      if (data.clientId) {
+        setParticipantAudioLevels(prev => ({ ...prev, [data.clientId!]: data.level }));
+      }
     });
 
     // Listen for autoplay warnings
@@ -836,6 +845,7 @@ export function useOmniumVoiceChat(
     currentTranscript,
     audioLevel,
     aiAudioLevel,
+    participantAudioLevels,
     error,
     localVideoStream,
     remoteVideoStream,
