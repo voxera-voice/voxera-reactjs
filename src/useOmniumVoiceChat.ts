@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  VoxeraClient,
-  VoxeraConfig,
+  MayaVoiceClient,
+  MayaVoiceConfig,
   ConnectionStatus,
   ConversationStatus,
   SpeakingStatus,
   ConversationMessage,
-  VoxeraError,
+  MayaVoiceError,
   WebRTCStats,
   RoomMode,
   TranscriptionEntry,
@@ -22,7 +22,7 @@ import type { RoomParticipant as CoreRoomParticipant } from "@voxera/sdk-core";
  */
 export interface UseOmniumVoiceChatConfig
   extends Omit<
-    VoxeraConfig,
+    MayaVoiceConfig,
     | "onConnectionStatusChange"
     | "onConversationStatusChange"
     | "onSpeakingStatusChange"
@@ -58,11 +58,9 @@ export interface UseOmniumVoiceChatReturn {
   currentTranscript: string;
   audioLevel: number;
   aiAudioLevel: number;
-  participantAudioLevels: Record<string, number>;
-  error: VoxeraError | null;
+  error: MayaVoiceError | null;
   localVideoStream: MediaStream | null;
   remoteVideoStream: MediaStream | null;
-  peerVideoStreams: Record<string, MediaStream>;
   audioPlaybackWarning: string | null;
 
   // Computed
@@ -90,7 +88,7 @@ export interface UseOmniumVoiceChatReturn {
   startScreenShare: () => Promise<void>;
   stopScreenShare: () => Promise<void>;
   toggleScreenShare: () => Promise<boolean>;
-  updateConfig: (config: Partial<VoxeraConfig>) => void;
+  updateConfig: (config: Partial<MayaVoiceConfig>) => void;
   getStats: () => Promise<WebRTCStats | null>;
   clearError: () => void;
   // Screen share stream
@@ -110,7 +108,6 @@ export interface UseOmniumVoiceChatReturn {
   roomMode: RoomMode | null;
   isHost: boolean;
   isTranscriptionEnabled: boolean;
-  isTranscribeOnly: boolean;
   isAskAiActive: boolean;
   isRoomLocked: boolean;
   isWaitingRoomEnabled: boolean;
@@ -129,7 +126,6 @@ export interface UseOmniumVoiceChatReturn {
 
   // Meeting features
   toggleTranscription: (enabled: boolean) => Promise<void>;
-  toggleTranscribeOnly: (enabled: boolean) => Promise<void>;
   askAi: () => Promise<void>;
   cancelAskAi: () => Promise<void>;
   enableWaitingRoom: (enabled: boolean) => Promise<void>;
@@ -156,7 +152,7 @@ export interface UseOmniumVoiceChatReturn {
 }
 
 /**
- * React hook for Voxera chat integration
+ * React hook for Maya Voice chat integration
  *
  * @example
  * ```tsx
@@ -173,7 +169,7 @@ export interface UseOmniumVoiceChatReturn {
  *     isAISpeaking,
  *   } = useOmniumVoiceChat({
  *     appKey: 'your-api-key',
- *     serverUrl: 'wss://api.voxera.ai',
+ *     serverUrl: 'wss://media.voxera-voice.com',
  *     chatConfig: {
  *       systemPrompt: 'You are a helpful assistant.',
  *     },
@@ -195,7 +191,7 @@ export function useOmniumVoiceChat(
   config: UseOmniumVoiceChatConfig
 ): UseOmniumVoiceChatReturn {
   // Client ref
-  const clientRef = useRef<VoxeraClient | null>(null);
+  const clientRef = useRef<MayaVoiceClient | null>(null);
 
   // State
   const [connectionStatus, setConnectionStatus] =
@@ -209,11 +205,9 @@ export function useOmniumVoiceChat(
   const [currentTranscript, setCurrentTranscript] = useState<string>("");
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [aiAudioLevel, setAIAudioLevel] = useState<number>(0);
-  const [participantAudioLevels, setParticipantAudioLevels] = useState<Record<string, number>>({});
-  const [error, setError] = useState<VoxeraError | null>(null);
+  const [error, setError] = useState<MayaVoiceError | null>(null);
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null);
   const [remoteVideoStream, setRemoteVideoStream] = useState<MediaStream | null>(null);
-  const [peerVideoStreams, setPeerVideoStreams] = useState<Record<string, MediaStream>>({});
   const [localScreenStream, setLocalScreenStream] = useState<MediaStream | null>(null);
   const [audioPlaybackWarning, setAudioPlaybackWarning] = useState<string | null>(null);
 
@@ -226,7 +220,6 @@ export function useOmniumVoiceChat(
   const [roomMode, setRoomMode] = useState<RoomMode | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(false);
-  const [isTranscribeOnly, setIsTranscribeOnly] = useState(false);
   const [isAskAiActive, setIsAskAiActive] = useState(false);
   const [isRoomLocked, setIsRoomLocked] = useState(false);
   const [isWaitingRoomEnabled, setIsWaitingRoomEnabled] = useState(false);
@@ -247,7 +240,7 @@ export function useOmniumVoiceChat(
 
   // Initialize client
   useEffect(() => {
-    const client = new VoxeraClient({
+    const client = new MayaVoiceClient({
       ...config,
       onConnectionStatusChange: setConnectionStatus,
       onConversationStatusChange: setConversationStatus,
@@ -268,27 +261,6 @@ export function useOmniumVoiceChat(
       onLocalVideoStream: setLocalVideoStream,
       onRemoteVideoStream: setRemoteVideoStream,
       onLocalScreenStream: setLocalScreenStream,
-    });
-
-    // Listen for peer audio levels
-    (client as any).on('peer-audio:level', (data: { producerId: string; clientId?: string; level: number }) => {
-      if (data.clientId) {
-        setParticipantAudioLevels(prev => ({ ...prev, [data.clientId!]: data.level }));
-      }
-    });
-
-    // Listen for peer video streams
-    (client as any).on('peer-video:stream', (data: { producerId: string; clientId?: string; stream: MediaStream | null }) => {
-      const key = data.clientId || data.producerId;
-      setPeerVideoStreams(prev => {
-        if (data.stream) {
-          return { ...prev, [key]: data.stream };
-        } else {
-          const next = { ...prev };
-          delete next[key];
-          return next;
-        }
-      });
     });
 
     // Listen for autoplay warnings
@@ -367,9 +339,6 @@ export function useOmniumVoiceChat(
       });
       sock.on('live-transcription', (entry: TranscriptionEntry) => {
         setTranscriptions(prev => [...prev, entry]);
-      });
-      sock.on('transcribe-only-toggled', (data: any) => {
-        setIsTranscribeOnly(data.enabled);
       });
 
       // Ask AI events
@@ -501,7 +470,6 @@ export function useOmniumVoiceChat(
       setRoomMode(null);
       setIsHost(false);
       setIsTranscriptionEnabled(false);
-      setIsTranscribeOnly(false);
       setIsAskAiActive(false);
       setIsRoomLocked(false);
       setIsWaitingRoomEnabled(false);
@@ -540,7 +508,7 @@ export function useOmniumVoiceChat(
     }
   }, []);
 
-  const updateConfig = useCallback((newConfig: Partial<VoxeraConfig>) => {
+  const updateConfig = useCallback((newConfig: Partial<MayaVoiceConfig>) => {
     if (clientRef.current) {
       clientRef.current.updateConfig(newConfig);
     }
@@ -584,7 +552,7 @@ export function useOmniumVoiceChat(
     try {
       return await clientRef.current.toggleVideo();
     } catch (error: any) {
-      console.error('[Voxera React] Video toggle error:', error);
+      console.error('[Maya React] Video toggle error:', error);
       setError(error);
       return false;
     }
@@ -595,7 +563,7 @@ export function useOmniumVoiceChat(
     try {
       await clientRef.current.startScreenShare();
     } catch (error: any) {
-      console.error('[Voxera React] Screen share start error:', error);
+      console.error('[Maya React] Screen share start error:', error);
       setError(error);
     }
   }, []);
@@ -610,7 +578,7 @@ export function useOmniumVoiceChat(
     try {
       return await clientRef.current.toggleScreenShare();
     } catch (error: any) {
-      console.error('[Voxera React] Screen share toggle error:', error);
+      console.error('[Maya React] Screen share toggle error:', error);
       setError(error);
       return false;
     }
@@ -631,7 +599,7 @@ export function useOmniumVoiceChat(
         roomMode: roomModeParam || 'ai-meeting',
       });
       if (result?.error) {
-        console.error('[Voxera React] create-room error:', result.error);
+        console.error('[Maya React] create-room error:', result.error);
         return null;
       }
       const mode: RoomMode = result.roomMode || roomModeParam || 'ai-meeting';
@@ -650,7 +618,7 @@ export function useOmniumVoiceChat(
 
       return { roomCode: result.roomCode as string, sessionId: result.sessionId as string, roomMode: mode };
     } catch (err) {
-      console.error('[Voxera React] create-room error:', err);
+      console.error('[Maya React] create-room error:', err);
       return null;
     }
   }, [config.appKey, config.chatConfig]);
@@ -665,7 +633,7 @@ export function useOmniumVoiceChat(
         displayName,
       });
       if (result?.error) {
-        console.error('[Voxera React] join-room error:', result.error);
+        console.error('[Maya React] join-room error:', result.error);
         return null;
       }
 
@@ -692,7 +660,7 @@ export function useOmniumVoiceChat(
 
       return { sessionId: result.sessionId as string, participants: result.participants || [], roomMode: mode, isHost: hostFlag };
     } catch (err) {
-      console.error('[Voxera React] join-room error:', err);
+      console.error('[Maya React] join-room error:', err);
       return null;
     }
   }, []);
@@ -703,7 +671,7 @@ export function useOmniumVoiceChat(
     try {
       await socket.emitWithAck('leave-room', { roomCode });
     } catch (err) {
-      console.error('[Voxera React] leave-room error:', err);
+      console.error('[Maya React] leave-room error:', err);
     }
     setRoomCode(null);
     setRoomSessionId(null);
@@ -720,7 +688,7 @@ export function useOmniumVoiceChat(
         return result.participants as RoomParticipant[];
       }
     } catch (err) {
-      console.error('[Voxera React] list-room-participants error:', err);
+      console.error('[Maya React] list-room-participants error:', err);
     }
     return [];
   }, [roomCode]);
@@ -774,12 +742,6 @@ export function useOmniumVoiceChat(
   const toggleTranscription = useCallback(async (enabled: boolean) => {
     if (clientRef.current && roomSessionId) {
       await clientRef.current.toggleTranscription(roomSessionId, enabled);
-    }
-  }, [roomSessionId]);
-
-  const toggleTranscribeOnly = useCallback(async (enabled: boolean) => {
-    if (clientRef.current && roomSessionId) {
-      await clientRef.current.toggleTranscribeOnly(roomSessionId, enabled);
     }
   }, [roomSessionId]);
 
@@ -874,11 +836,9 @@ export function useOmniumVoiceChat(
     currentTranscript,
     audioLevel,
     aiAudioLevel,
-    participantAudioLevels,
     error,
     localVideoStream,
     remoteVideoStream,
-    peerVideoStreams,
     localScreenStream,
     audioPlaybackWarning,
 
@@ -925,7 +885,6 @@ export function useOmniumVoiceChat(
     roomMode,
     isHost,
     isTranscriptionEnabled,
-    isTranscribeOnly,
     isAskAiActive,
     isRoomLocked,
     isWaitingRoomEnabled,
@@ -944,7 +903,6 @@ export function useOmniumVoiceChat(
 
     // Meeting features
     toggleTranscription,
-    toggleTranscribeOnly,
     askAi,
     cancelAskAi,
     enableWaitingRoom,

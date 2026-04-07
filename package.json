@@ -1,6 +1,6 @@
 {
   "name": "@voxera/sdk-react",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "description": "React SDK for Voxera Voice Platform",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

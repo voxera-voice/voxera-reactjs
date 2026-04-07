@@ -52,7 +52,7 @@ export interface VoxeraProviderProps {
  *     <VoxeraProvider
  *       config={{
  *         appKey: 'your-api-key',
- *         serverUrl: 'wss://api.voxera.ai',
+ *         serverUrl: 'wss://media.voxera-voice.com',
  *       }}
  *       autoConnect
  *     >

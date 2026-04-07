@@ -1,6 +1,48 @@
-# @voxera/sdk-react
+# Voxera SDK — React
 
-React hooks and components for the [Voxera](https://voxera.ai) voice AI platform. Built on top of `@voxera/sdk-core`.
+React hooks and components for [Voxera Voice Platform](https://voxera-voice.com). Built on top of `@voxera/sdk-core`.
+
+## Platform Endpoints
+
+| Service | URL |
+|---------|-----|
+| **Media Server (WebSocket)** | `wss://media.voxera-voice.com` |
+| **Client API** | `https://client.voxera-voice.com/api/v1` |
+| **Admin Dashboard** | `https://app.voxera-voice.com` |
+
+## Meeting Modes
+
+### AI Meeting (`ai-meeting`)
+
+Real-time voice conversation with an AI assistant. The AI listens via STT, processes through a configurable LLM (OpenAI, Anthropic, Ollama), and responds with natural speech via TTS. Multiple participants can share the same AI room.
+
+- Bidirectional voice AI (WebRTC/mediasoup)
+- Configurable AI persona, model, temperature, max tokens
+- Multiple TTS providers (OpenAI, ElevenLabs, Azure)
+- Multiple STT providers (Google, OpenAI Whisper)
+- Live transcription, video, screen sharing with AI vision
+- AI-generated meeting summaries and minutes
+- Bookmarks with action item flags
+
+### Normal Meeting (`normal-meeting`)
+
+Multi-participant audio/video meeting without AI voice. AI features available as text-only.
+
+- Multi-participant real-time audio/video (WebRTC/mediasoup SFU)
+- Host controls — mute, remove, transfer host, lock room, end meeting
+- Waiting room with admit/deny
+- Live transcription (host toggle)
+- Ask AI (text) — streamed text responses
+- AI summaries, minutes, bookmarks
+- Screen sharing
+
+### Common Features
+
+- WebRTC via mediasoup SFU with TURN fallback
+- Room management with room codes and display names
+- Real-time participant events
+- Webhook integration
+- Usage tracking and billing
 
 ## Installation
 
@@ -8,162 +50,127 @@ React hooks and components for the [Voxera](https://voxera.ai) voice AI platform
 npm install @voxera/sdk-react @voxera/sdk-core
 ```
 
-## Quick Start
+## Quick Start — AI Meeting
 
 ```tsx
 import { useOmniumVoiceChat } from '@voxera/sdk-react';
 
-function VoiceChat() {
+function AIVoiceChat() {
   const {
+    connectionStatus,
+    conversationStatus,
+    speakingStatus,
+    conversationMessages,
+    isConnected,
+    isConversationActive,
     connect,
     disconnect,
     startConversation,
     endConversation,
-    connectionStatus,
-    conversationMessages,
-    isUserSpeaking,
-    isAISpeaking,
+    setMuted,
   } = useOmniumVoiceChat({
-    appKey: 'your-api-key',
-    serverUrl: 'wss://api.voxera.ai',
+    appKey: 'your-app-key',                    // from https://app.voxera-voice.com
+    serverUrl: 'wss://media.voxera-voice.com',
     chatConfig: {
       systemPrompt: 'You are a helpful assistant.',
+      model: 'gpt-4o',
+      temperature: 0.7,
+    },
+    voiceConfig: {
+      voiceId: 'nova',
+      voiceProvider: 'openai',
     },
   });
 
   return (
     <div>
-      <p>Status: {connectionStatus}</p>
-      <button onClick={connect}>Connect</button>
-      <button onClick={startConversation}>Start</button>
-      {conversationMessages.map((msg) => (
-        <p key={msg.id}>{msg.role}: {msg.content}</p>
-      ))}
+      <p>Status: {connectionStatus} / {conversationStatus}</p>
+      <p>Speaking: {speakingStatus}</p>
+      <button onClick={connect} disabled={isConnected}>Connect</button>
+      <button onClick={startConversation} disabled={!isConnected}>Start</button>
+      <button onClick={endConversation} disabled={!isConversationActive}>Stop</button>
+      <button onClick={disconnect}>Disconnect</button>
+      <ul>
+        {conversationMessages.map((m, i) => (
+          <li key={i}><b>{m.role}:</b> {m.content}</li>
+        ))}
+      </ul>
     </div>
   );
 }
 ```
 
-## Features
+## Quick Start — Normal Meeting (Multi-Participant)
 
-- **`useOmniumVoiceChat`** — all-in-one hook for voice AI, rooms, meetings, video, and transcription
-- **`VoxeraProvider` / `useVoxera`** — React context for sharing a client instance across components
-- **Real-time State** — reactive `connectionStatus`, `conversationStatus`, `speakingStatus`, audio levels
-- **Multi-Room Meetings** — `createRoom`, `joinRoom`, `leaveRoom` with participant tracking
-- **Host Controls** — mute/remove participants, lock room, transfer host, waiting room
-- **Video & Screen Share** — local/remote video streams, peer video, screen sharing
-- **AI Meeting Tools** — live transcription, transcribe-only mode, Ask AI, summaries, minutes, bookmarks
-- **Zero Config** — sensible defaults, auto-reconnect, TypeScript support
+```tsx
+import { useOmniumVoiceChat } from '@voxera/sdk-react';
 
-## `useOmniumVoiceChat` Hook
+function MeetingRoom() {
+  const {
+    isInRoom,
+    roomCode,
+    roomParticipants,
+    isHost,
+    transcriptions,
+    summaries,
+    askAiTextResponse,
+    createRoom,
+    joinRoom,
+    leaveRoom,
+    muteParticipant,
+    muteAll,
+    unmuteAll,
+    removeParticipant,
+    lockRoom,
+    endMeeting,
+    transferHost,
+    toggleTranscription,
+    askAiText,
+    generateSummary,
+    generateMinutes,
+    addBookmark,
+    enableWaitingRoom,
+    admitParticipant,
+  } = useOmniumVoiceChat({
+    appKey: 'your-app-key',
+    serverUrl: 'wss://media.voxera-voice.com',
+  });
 
-### Configuration
+  const handleCreate = () => createRoom('Alice', 'Team Standup', 'normal-meeting');
+  const handleJoin = (code: string) => joinRoom(code, 'Bob');
 
-```typescript
-const result = useOmniumVoiceChat({
-  appKey: string;          // Required: API key
-  serverUrl: string;       // Required: WebSocket URL
-  configurationId?: string;
-  chatConfig?: {
-    systemPrompt?: string;
-    aiProvider?: 'openai' | 'anthropic' | 'ollama';
-    model?: string;
-    temperature?: number;
-  };
-  voiceConfig?: {
-    voiceId?: string;
-    voiceProvider?: 'elevenlabs' | 'openai' | 'azure';
-    language?: string;
-  };
-  videoConfig?: {
-    enabled?: boolean;
-    width?: number;
-    height?: number;
-  };
-});
+  return (
+    <div>
+      {!isInRoom ? (
+        <>
+          <button onClick={handleCreate}>Create Room</button>
+          <button onClick={() => handleJoin('ABC123')}>Join Room</button>
+        </>
+      ) : (
+        <>
+          <p>Room: {roomCode} ({roomParticipants.length} participants)</p>
+          {isHost && (
+            <div>
+              <button onClick={muteAll}>Mute All</button>
+              <button onClick={() => toggleTranscription(true)}>Enable Transcription</button>
+              <button onClick={() => enableWaitingRoom(true)}>Enable Waiting Room</button>
+              <button onClick={generateSummary}>Generate Summary</button>
+              <button onClick={generateMinutes}>Generate Minutes</button>
+              <button onClick={endMeeting}>End Meeting</button>
+            </div>
+          )}
+          <button onClick={() => askAiText('What were the key decisions?')}>Ask AI</button>
+          <button onClick={() => addBookmark('Important point', true)}>Bookmark</button>
+          <button onClick={leaveRoom}>Leave</button>
+          {askAiTextResponse && <p>AI: {askAiTextResponse}</p>}
+        </>
+      )}
+    </div>
+  );
+}
 ```
 
-### Returned State
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `connectionStatus` | `ConnectionStatus` | `'idle'` \| `'connecting'` \| `'connected'` \| `'disconnected'` \| `'error'` |
-| `conversationStatus` | `ConversationStatus` | `'idle'` \| `'starting'` \| `'active'` \| `'ending'` \| `'ended'` |
-| `conversationMessages` | `ConversationMessage[]` | All messages in the conversation |
-| `currentTranscript` | `string` | In-progress user speech transcript |
-| `audioLevel` | `number` | Local microphone audio level (0–1) |
-| `aiAudioLevel` | `number` | AI audio playback level (0–1) |
-| `participantAudioLevels` | `Record<string, number>` | Per-participant audio levels |
-| `isConnected` | `boolean` | Whether connected to server |
-| `isConversationActive` | `boolean` | Whether conversation is active |
-| `isUserSpeaking` | `boolean` | Whether local user is speaking |
-| `isAISpeaking` | `boolean` | Whether AI is speaking |
-| `error` | `VoxeraError \| null` | Last error |
-
-### Core Actions
-
-| Method | Description |
-|--------|-------------|
-| `connect()` | Connect to server |
-| `disconnect()` | Disconnect |
-| `startConversation()` | Start voice conversation |
-| `endConversation()` | End conversation |
-| `sendMessage(content)` | Send text message |
-| `setMuted(muted)` | Mute/unmute mic |
-
-### Video & Screen Share
-
-| Method/Property | Description |
-|--------|-------------|
-| `localVideoStream` | Local camera stream |
-| `remoteVideoStream` | Remote AI video stream |
-| `peerVideoStreams` | Map of peer video streams |
-| `enableVideo()` / `disableVideo()` / `toggleVideo()` | Camera control |
-| `startScreenShare()` / `stopScreenShare()` / `toggleScreenShare()` | Screen sharing |
-
-### Multi-Room
-
-| Method/Property | Description |
-|--------|-------------|
-| `createRoom(displayName, roomName?, roomMode?)` | Create a room |
-| `joinRoom(roomCode, displayName)` | Join by room code |
-| `leaveRoom()` | Leave current room |
-| `roomCode` | Current room code |
-| `roomParticipants` | Participant list |
-| `isHost` | Whether local user is host |
-| `roomMode` | `'ai-meeting'` or `'normal-meeting'` |
-
-### Host Controls
-
-```typescript
-muteParticipant(targetClientId)
-muteAll()
-unmuteAll()
-removeParticipant(targetClientId)
-lockRoom(locked)
-endMeeting()
-transferHost(targetClientId)
-```
-
-### Meeting Features
-
-| Method/Property | Description |
-|--------|-------------|
-| `toggleTranscription(enabled)` | Toggle live transcription |
-| `toggleTranscribeOnly(enabled)` | Transcribe without AI |
-| `isTranscriptionEnabled` | Transcription state |
-| `isTranscribeOnly` | Transcribe-only state |
-| `transcriptions` | Live transcription entries |
-| `askAi()` / `cancelAskAi()` | Trigger/cancel AI |
-| `askAiText(prompt?)` | Ask AI a text question |
-| `generateSummary()` | Generate meeting summary |
-| `generateMinutes()` | Generate meeting minutes |
-| `addBookmark(label, isActionItem?)` | Add bookmark |
-| `bookmarks` / `summaries` / `currentMinutes` | Meeting data |
-
-## `VoxeraProvider`
-
-For sharing a client instance across components:
+## Provider Pattern
 
 ```tsx
 import { VoxeraProvider, useVoxera } from '@voxera/sdk-react';
@@ -171,42 +178,106 @@ import { VoxeraProvider, useVoxera } from '@voxera/sdk-react';
 function App() {
   return (
     <VoxeraProvider
-      config={{ appKey: 'your-key', serverUrl: 'wss://api.voxera.ai' }}
+      config={{
+        appKey: 'your-app-key',
+        serverUrl: 'wss://media.voxera-voice.com',
+      }}
       autoConnect
     >
-      <VoiceChat />
+      <ChatView />
     </VoxeraProvider>
   );
 }
 
-function VoiceChat() {
+function ChatView() {
   const { client, connectionStatus, messages } = useVoxera();
-  // ...
+  // Use the shared client instance
 }
 ```
 
-## TypeScript
+## Hook Return Values
 
-All types are re-exported from `@voxera/sdk-core`:
+### Status
 
-```typescript
-import type {
-  VoxeraConfig,
-  ConnectionStatus,
-  ConversationMessage,
-  RoomMode,
-  RoomParticipant,
-  TranscriptionEntry,
-} from '@voxera/sdk-react';
-```
+| Field | Type | Description |
+|-------|------|-------------|
+| `connectionStatus` | `ConnectionStatus` | `idle` · `connecting` · `connected` · `disconnected` |
+| `conversationStatus` | `ConversationStatus` | `idle` · `starting` · `active` · `ending` · `ended` |
+| `speakingStatus` | `SpeakingStatus` | `none` · `user` · `ai` |
+| `isConnected` | `boolean` | Connected to media server |
+| `isConversationActive` | `boolean` | Voice conversation running |
+| `isInRoom` | `boolean` | In a multi-participant room |
+| `isHost` | `boolean` | Current user is room host |
+| `roomMode` | `RoomMode` | `ai-meeting` or `normal-meeting` |
 
-## Backward Compatibility
+### Data
 
-Legacy names are still exported as deprecated aliases:
+| Field | Type | Description |
+|-------|------|-------------|
+| `conversationMessages` | `ConversationMessage[]` | Chat messages |
+| `currentTranscript` | `string` | In-progress speech text |
+| `audioLevel` / `aiAudioLevel` | `number` | Audio levels (0–1) |
+| `roomCode` | `string` | Current room code |
+| `roomParticipants` | `RoomParticipant[]` | Participant list |
+| `transcriptions` | `TranscriptionEntry[]` | Transcription entries |
+| `waitingRoom` | `WaitingRoomEntry[]` | Waiting room entries |
+| `bookmarks` | `MeetingBookmark[]` | Meeting bookmarks |
+| `summaries` | `MeetingSummary[]` | AI summaries |
+| `currentMinutes` | `MeetingMinutes` | AI minutes |
+| `askAiTextResponse` | `string` | AI text response |
 
-```typescript
-// These still work but are deprecated:
-import { MayaVoiceProvider, useMayaVoice } from '@voxera/sdk-react';
+### Actions
+
+| Method | Description |
+|--------|-------------|
+| `connect()` | Connect to media server |
+| `disconnect()` | Disconnect |
+| `startConversation()` | Start voice conversation |
+| `endConversation()` | End voice conversation |
+| `sendMessage(content)` | Send text message |
+| `setMuted(bool)` | Mute/unmute mic |
+| `enableVideo()` / `disableVideo()` | Camera control |
+| `startScreenShare()` / `stopScreenShare()` | Screen share |
+| `createRoom(name, roomName?, mode?)` | Create room |
+| `joinRoom(code, name)` | Join room by code |
+| `leaveRoom()` | Leave current room |
+
+### Host Controls
+
+| Method | Description |
+|--------|-------------|
+| `muteParticipant(id)` | Mute a participant |
+| `muteAll()` / `unmuteAll()` | Mute/unmute everyone |
+| `removeParticipant(id)` | Remove from room |
+| `lockRoom(bool)` | Lock/unlock room |
+| `endMeeting()` | End meeting for all |
+| `transferHost(id)` | Transfer host role |
+| `toggleTranscription(bool)` | Toggle live transcription |
+| `enableWaitingRoom(bool)` | Toggle waiting room |
+| `admitParticipant(id)` / `denyParticipant(id)` | Waiting room decisions |
+| `admitAll()` | Admit all waiting |
+
+### AI Features
+
+| Method | Description |
+|--------|-------------|
+| `askAi()` | AI spoken response (ai-meeting) |
+| `cancelAskAi()` | Cancel AI voice |
+| `askAiText(prompt?)` | AI text response |
+| `generateSummary()` | Generate AI summary |
+| `generateMinutes()` | Generate AI minutes |
+| `addBookmark(label, isActionItem?)` | Add bookmark |
+| `removeBookmark(id)` | Remove bookmark |
+| `getTranscript()` | Fetch transcript |
+
+## Configuration
+
+See [`@voxera/sdk-core` README](../sdk-core/README.md) for full `MayaVoiceConfig`, `ChatConfig`, `VoiceConfig`, `VideoConfig`, and `ConnectionOptions` reference.
+
+## Build
+
+```bash
+npm run build
 ```
 
 ## License
