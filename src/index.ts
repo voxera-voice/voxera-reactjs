@@ -5,7 +5,7 @@
  *
  * @example
  * ```tsx
- * import { useOmniumVoiceChat } from '@voxera/sdk-react';
+ * import { useVoxeraVoiceChat } from '@voxera/sdk-react';
  *
  * function VoiceChat() {
  *   const {
@@ -14,7 +14,7 @@
  *     conversationMessages,
  *     isUserSpeaking,
  *     isAISpeaking,
- *   } = useOmniumVoiceChat({
+ *   } = useVoxeraVoiceChat({
  *     appKey: 'your-api-key',
  *     serverUrl: 'wss://media.voxera-voice.com',
  *   });
@@ -30,12 +30,12 @@
  */
 
 // Main hook
-export { useOmniumVoiceChat } from "./useOmniumVoiceChat";
+export { useVoxeraVoiceChat } from "./useVoxeraVoiceChat";
 export type {
-  UseOmniumVoiceChatConfig,
-  UseOmniumVoiceChatReturn,
+  UseVoxeraVoiceChatConfig,
+  UseVoxeraVoiceChatReturn,
   RoomParticipant,
-} from "./useOmniumVoiceChat";
+} from "./useVoxeraVoiceChat";
 
 // Provider and context hook
 export { VoxeraProvider, useVoxera } from "./VoxeraProvider";

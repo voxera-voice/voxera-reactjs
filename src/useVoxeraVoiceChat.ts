@@ -18,9 +18,9 @@ import {
 import type { RoomParticipant as CoreRoomParticipant } from "@voxera/sdk-core";
 
 /**
- * Configuration for the useOmniumVoiceChat hook
+ * Configuration for the useVoxeraVoiceChat hook
  */
-export interface UseOmniumVoiceChatConfig
+export interface UseVoxeraVoiceChatConfig
   extends Omit<
     MayaVoiceConfig,
     | "onConnectionStatusChange"
@@ -45,9 +45,9 @@ export interface RoomParticipant {
 }
 
 /**
- * Return type for the useOmniumVoiceChat hook
+ * Return type for the useVoxeraVoiceChat hook
  */
-export interface UseOmniumVoiceChatReturn {
+export interface UseVoxeraVoiceChatReturn {
   // Status
   connectionStatus: ConnectionStatus;
   conversationStatus: ConversationStatus;
@@ -167,7 +167,7 @@ export interface UseOmniumVoiceChatReturn {
  *     conversationMessages,
  *     isUserSpeaking,
  *     isAISpeaking,
- *   } = useOmniumVoiceChat({
+ *   } = useVoxeraVoiceChat({
  *     appKey: 'your-api-key',
  *     serverUrl: 'wss://media.voxera-voice.com',
  *     chatConfig: {
@@ -187,9 +187,9 @@ export interface UseOmniumVoiceChatReturn {
  * }
  * ```
  */
-export function useOmniumVoiceChat(
-  config: UseOmniumVoiceChatConfig
-): UseOmniumVoiceChatReturn {
+export function useVoxeraVoiceChat(
+  config: UseVoxeraVoiceChatConfig
+): UseVoxeraVoiceChatReturn {
   // Client ref
   const clientRef = useRef<MayaVoiceClient | null>(null);
 

@@ -54,7 +54,7 @@ npm install @voxera/sdk-react @voxera/sdk-core
 ## Quick Start — AI Meeting
 
 ```tsx
-import { useOmniumVoiceChat } from '@voxera/sdk-react';
+import { useVoxeraVoiceChat } from '@voxera/sdk-react';
 
 function AIVoiceChat() {
   const {
@@ -69,7 +69,7 @@ function AIVoiceChat() {
     startConversation,
     endConversation,
     setMuted,
-  } = useOmniumVoiceChat({
+  } = useVoxeraVoiceChat({
     appKey: 'your-app-key',                    // from https://app.voxera-voice.com
     serverUrl: 'wss://media.voxera-voice.com',
     chatConfig: {
@@ -104,7 +104,7 @@ function AIVoiceChat() {
 ## Quick Start — Normal Meeting (Multi-Participant)
 
 ```tsx
-import { useOmniumVoiceChat } from '@voxera/sdk-react';
+import { useVoxeraVoiceChat } from '@voxera/sdk-react';
 
 function MeetingRoom() {
   const {
@@ -132,7 +132,7 @@ function MeetingRoom() {
     addBookmark,
     enableWaitingRoom,
     admitParticipant,
-  } = useOmniumVoiceChat({
+  } = useVoxeraVoiceChat({
     appKey: 'your-app-key',
     serverUrl: 'wss://media.voxera-voice.com',
   });
