@@ -7,8 +7,9 @@ React hooks and components for [Voxera Voice Platform](https://voxera-voice.com)
 | Service | URL |
 |---------|-----|
 | **Media Server (WebSocket)** | `wss://media.voxera-voice.com` |
-| **Client API** | `https://client.voxera-voice.com/api/v1` |
-| **Admin Dashboard** | `https://app.voxera-voice.com` |
+| **Demo** | `https://demo.voxera-voice.com` |
+
+> Get your API key at [app.voxera-voice.com](https://app.voxera-voice.com)
 
 ## Meeting Modes
 
