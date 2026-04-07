@@ -18,7 +18,7 @@ React hooks and components for [Voxera Voice Platform](https://voxera-voice.com)
 Real-time voice conversation with an AI assistant. The AI listens via STT, processes through a configurable LLM (OpenAI, Anthropic, Ollama), and responds with natural speech via TTS. Multiple participants can share the same AI room.
 
 - Bidirectional voice AI (WebRTC/mediasoup)
-- Configurable AI persona, model, temperature, max tokens
+- Configurable AI persona via dashboard Agent settings
 - Multiple TTS providers (OpenAI, ElevenLabs, Azure)
 - Multiple STT providers (Google, OpenAI Whisper)
 - Live transcription, video, screen sharing with AI vision
@@ -72,15 +72,7 @@ function AIVoiceChat() {
   } = useVoxeraVoiceChat({
     appKey: 'your-app-key',                    // from https://app.voxera-voice.com
     serverUrl: 'wss://media.voxera-voice.com',
-    chatConfig: {
-      systemPrompt: 'You are a helpful assistant.',
-      model: 'gpt-4o',
-      temperature: 0.7,
-    },
-    voiceConfig: {
-      voiceId: 'nova',
-      voiceProvider: 'openai',
-    },
+    agentId: 'your-agent-id',                  // created in the dashboard
   });
 
   return (
