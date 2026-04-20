@@ -1,6 +1,6 @@
 {
   "name": "@voxera/sdk-react",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "React SDK for Voxera Voice Platform",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -31,7 +31,7 @@
     "url": "https://github.com/voxera-voice/voxera-reactjs/issues"
   },
   "dependencies": {
-    "@voxera/sdk-core": "^1.0.11"
+    "@voxera/sdk-core": "^1.0.13"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
